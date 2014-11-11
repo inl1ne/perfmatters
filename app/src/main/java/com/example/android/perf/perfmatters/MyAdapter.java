@@ -32,7 +32,7 @@ public class MyAdapter extends BaseAdapter {
             new Item(R.drawable.colt, R.color.tint1, "Perf Like a Pirate", "Cap'n Colt 'Mad Dog' McAnlis"),
             new Item(R.drawable.dan, R.color.tint2, "I Don't Always Perf, But When I Do...", "The Most Interesting Dan In the World"),
             new Item(R.drawable.ian, R.color.tint3, "I Liked Perf Before It Was Cool", "Ian (Just Ian)"),
-            new Item(R.drawable.reto, R.color.tint4, "He's the One They Call Dr. PerfGood", "Reto Meier (not a real doctor)"),
+            new Item(R.drawable.reto, R.color.tint4, "He's the One They Call Dr. PerfGood", "Reeeeeeeeeeto Meier"),
             new Item(R.drawable.alex, R.color.tint1, "Perf Like This Guy!", "This Guy"),
     };
 
@@ -72,7 +72,7 @@ public class MyAdapter extends BaseAdapter {
         TextView speaker = (TextView) result.findViewById(R.id.speaker);
         View background = result.findViewById(R.id.background);
 
-        background.setBackgroundColor(item.tint);
+        background.setBackgroundColor(mContext.getResources().getColor(item.tint));
         image.setImageResource(item.image);
         title.setText(item.title);
         speaker.setText(item.speaker);

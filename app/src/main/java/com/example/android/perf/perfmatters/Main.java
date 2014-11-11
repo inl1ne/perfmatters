@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.SeekBar;
 
 
 public class Main extends Activity {
@@ -13,8 +16,36 @@ public class Main extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ListView list = (ListView) findViewById(R.id.list);
+        final AlphaListView list = (AlphaListView) findViewById(R.id.list);
         list.setAdapter(new MyAdapter(this));
+
+        SeekBar alpha = (SeekBar) findViewById(R.id.alpha_slider);
+        alpha.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                float a = ((float)progress) / 100.0f;
+                list.setAlpha(a);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        CheckBox overlapping = (CheckBox) findViewById(R.id.overlapping);
+        overlapping.setChecked(list.hasOverlappingRendering());
+        overlapping.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                list.setOverlappingRendering(isChecked);
+            }
+        });
     }
 
 
