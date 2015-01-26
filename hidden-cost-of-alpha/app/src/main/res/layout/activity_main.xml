@@ -1,0 +1,52 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context=".Main">
+
+    <LinearLayout
+        android:id="@+id/alpha_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alpha:"/>
+            <SeekBar
+                android:id="@+id/alpha_slider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="100"/>
+        </LinearLayout>
+        <CheckBox
+            android:id="@+id/overlapping"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="hasOverlappingRendering"/>
+    </LinearLayout>
+
+    <com.example.android.perf.perfmatters.AlphaListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:headerDividersEnabled="false"
+        android:footerDividersEnabled="false"
+        android:divider="@android:color/white"
+        android:dividerHeight="0dp"
+        android:layout_above="@id/alpha_panel"
+        >
+
+        </com.example.android.perf.perfmatters.AlphaListView>
+</RelativeLayout>
