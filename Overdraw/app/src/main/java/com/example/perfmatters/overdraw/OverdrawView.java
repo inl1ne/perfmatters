@@ -43,7 +43,7 @@ public class OverdrawView extends TextView {
         // regardless of how much overdraw we've asked for.
         r.set(0,0,1,1);
         for (int i = overdrawAmount; i < overdrawMax; ++i) {
-            paint.setARGB(0x80, i%2 * 0xff, (1-i%2) * 0xff, i%3 * 0x80);
+            paint.setARGB(0xFF, i%2 * 0xff, (1-i%2) * 0xff, i%3 * 0x80);
             canvas.drawRect(r, paint);
             pixels++;
         }
