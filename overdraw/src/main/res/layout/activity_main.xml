@@ -29,7 +29,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="8"/>
-        <com.github.perfmatters.overdraw.FPSView
+        <com.example.perfmatters.utilsmatter.FPSView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="3"/>

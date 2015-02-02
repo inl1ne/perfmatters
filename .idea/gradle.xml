@@ -9,9 +9,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/cardview" />
+            <option value="$PROJECT_DIR$/customview" />
             <option value="$PROJECT_DIR$/hidden-cost-of-alpha" />
             <option value="$PROJECT_DIR$/overdraw" />
+            <option value="$PROJECT_DIR$/utilsmatter" />
           </set>
         </option>
       </GradleProjectSettings>
