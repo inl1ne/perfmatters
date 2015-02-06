@@ -1,4 +1,4 @@
-package com.github.perfmatters.cardview;
+package com.github.perfmatters.customview;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

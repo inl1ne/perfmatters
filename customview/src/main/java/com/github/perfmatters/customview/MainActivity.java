@@ -1,4 +1,4 @@
-package com.github.perfmatters.cardview;
+package com.github.perfmatters.customview;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;

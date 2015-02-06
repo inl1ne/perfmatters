@@ -1,0 +1,7 @@
+<resources>
+    <declare-styleable name="CardView">
+        <attr name="cardWidth" format="dimension" />
+        <attr name="cardHeight" format="dimension" />
+        <attr name="bitmapSheet" format="reference" />
+    </declare-styleable>
+</resources>
