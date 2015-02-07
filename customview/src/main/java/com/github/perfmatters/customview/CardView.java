@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Region;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -20,6 +21,7 @@ import java.io.InputStream;
 public class CardView extends View {
     private CardBitmaps mCardBitmaps;
     private Paint mPaint = new Paint();
+    private CardClipper mClipper = new CardClipper(1000);
 
     public CardView(Context context) {
         super(context);
@@ -84,18 +86,35 @@ public class CardView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        //super.onDraw(canvas);
-        if (mCardBitmaps.isDone())
-            canvas.clipRect(100,100,400,500);
-
-        for (int i = 0; i < CardBitmaps.SUIT_COUNT *2; ++i) {
+        for (int i = 0; i < CardBitmaps.SUIT_COUNT; ++i) {
             for (int j = 0; j < CardBitmaps.CARDVALUE_COUNT; ++j) {
-                Bitmap bmp = mCardBitmaps.getCardBitmap(i % CardBitmaps.SUIT_COUNT, j);
-                if (bmp != null) {
-                    canvas.drawBitmap(bmp, j * 40, i * 100, mPaint);
-                }
+                int left = j * 40;
+                int top = i * 100 + j * 10;
+                int right = left + mCardBitmaps.getCardRect().width();
+                int bottom = top + mCardBitmaps.getCardRect().height();
+                mClipper.addRect(i % CardBitmaps.SUIT_COUNT + j,
+                        left, top, right, bottom);
             }
         }
-        invalidate(new Rect(100,100,400,500));
+        mClipper.processClippedCards(new ClipVisitor(canvas));
+        mClipper.clear();
+        invalidate(new Rect(100, 100, 400, 500));
+    }
+
+    private class ClipVisitor implements CardClipper.CardClipperVisitor {
+        private Canvas mCanvas;
+
+        private ClipVisitor(Canvas canvas) {
+            this.mCanvas = canvas;
+        }
+
+        @Override
+        public void visit(int originalCardId, Rect originalRect, Rect clippedRect) {
+            Bitmap bmp = mCardBitmaps.getCardBitmap(originalCardId);
+            if (bmp != null) {
+                mCanvas.clipRect(clippedRect, Region.Op.REPLACE);
+                mCanvas.drawBitmap(bmp, originalRect.left, originalRect.bottom, mPaint);
+            }
+        }
     }
 }

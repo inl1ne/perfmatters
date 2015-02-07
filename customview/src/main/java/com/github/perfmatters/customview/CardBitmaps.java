@@ -189,7 +189,15 @@ public class CardBitmaps {
         return mBitmaps.get(suit * CARDVALUE_COUNT + value);
     }
 
+    public Bitmap getCardBitmap(int cardId) {
+        return mBitmaps.get(cardId);
+    }
+
     public boolean isDone() {
         return mLoaded.get() == -1;
+    }
+
+    public Rect getCardRect() {
+        return mRect;
     }
 }

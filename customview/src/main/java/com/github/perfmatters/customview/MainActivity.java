@@ -1,9 +1,14 @@
 package com.github.perfmatters.customview;
 
+import android.graphics.Rect;
+import android.support.v4.util.Pools;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity {
