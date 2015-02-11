@@ -32,14 +32,14 @@ public class CardClipper {
         // Quick and dirty heuristic: assume each unclipped rectangle produces
         // two clipped rectangles on average.
         int rectPoolSize = capacity * 8;
-        mRectPool = new Pools.SimplePool<>(rectPoolSize);
+        mRectPool = new UncheckedPool<>(rectPoolSize);
         for (int i = 0; i < rectPoolSize; ++i) {
             mRectPool.release(new Rect());
         }
 
         // One ClipRect per input rectangle, because the ClipRect object
         // holds any extras.
-        mClipRectPool = new Pools.SimplePool<>(capacity);
+        mClipRectPool = new UncheckedPool<>(capacity);
         for (int i = 0; i < capacity; ++i) {
             mClipRectPool.release(new ClipRect());
         }
@@ -69,101 +69,71 @@ public class CardClipper {
         firstRect.set(clipper.originalRect);
         clipper.rects.add(firstRect);
         for (ClipRect layer : mCliplist) {
-            boolean isClipped = false;
-            for (Rect clippee : layer.rects) {
-                if (clippee.contains(left, top)) {
-                    isClipped = true;
-
-                    // Create new rectangles above and to the left
-                    if (top != clippee.top) {
-                        Rect rTop = mRectPool.acquire();
-                        rTop.set(clippee.left, clippee.top, clippee.right, top);
-                        mScratchRects.add(rTop);
-                    }
-
-                    if (left != clippee.left) {
-                        Rect rLeft = mRectPool.acquire();
-                        rLeft.set(clippee.left, top, left, clippee.bottom);
-                        mScratchRects.add(rLeft);
-                    }
-
-                    // Shrink the clippee to eliminate the new rectangles from
-                    // subsequent tests
-                    clippee.left = left;
-                    clippee.top = top;
-                }
-                if (clippee.contains(right, top)) {
-                    isClipped = true;
-
-                    // Create new rectangles above and to the right
-                    if (top != clippee.top) {
-                        Rect rTop = mRectPool.acquire();
-                        rTop.set(clippee.left, clippee.top, clippee.right, top);
-                        mScratchRects.add(rTop);
-                    }
-
-                    if (right != clippee.right) {
-                        Rect rRight = mRectPool.acquire();
-                        rRight.set(right, top, clippee.right, clippee.bottom);
-                        mScratchRects.add(rRight);
-                    }
-
-                    clippee.right = right;
-                    clippee.top = top;
-                }
-                if (clippee.contains(left, bottom)) {
-                    isClipped = true;
-
-                    // Create new rectangles below and to the left
-                    if (bottom != clippee.bottom) {
-                        Rect rBottom = mRectPool.acquire();
-                        rBottom.set(clippee.left, bottom, clippee.right, clippee.bottom);
-                        mScratchRects.add(rBottom);
-                    }
-
-                    if (left != clippee.left) {
-                        Rect rLeft = mRectPool.acquire();
-                        rLeft.set(clippee.left, clippee.top, left, bottom);
-                        mScratchRects.add(rLeft);
-                    }
-
-                    clippee.left = left;
-                    clippee.bottom = bottom;
-                }
-                if (clippee.contains(right, bottom)) {
-                    isClipped = true;
-
-                    // Create new rectangles below and to the right
-                    if (bottom != clippee.bottom) {
-                        Rect rBottom = mRectPool.acquire();
-                        rBottom.set(clippee.left, bottom, clippee.right, clippee.bottom);
-                        mScratchRects.add(rBottom);
-                    }
-
-                    if (right != clippee.right) {
-                        Rect rRight = mRectPool.acquire();
-                        rRight.set(right, clippee.top, clippee.right, bottom);
-                        mScratchRects.add(rRight);
-                    }
-
-                    clippee.right = right;
-                    clippee.bottom = bottom;
-                }
-                if (!isClipped) {
-                    Rect scratchClippee = mRectPool.acquire();
-                    scratchClippee.set(clippee);
-                    mScratchRects.add(scratchClippee);
-                }
-            }
-            for (Rect r : layer.rects) {
-                mRectPool.release(r);
-            }
-            layer.rects.clear();
-            layer.rects.addAll(mScratchRects);
-            mScratchRects.clear();
+            clipLayer(clipper, layer);
         }
         // ...and the clipper joins the clippees.
         mCliplist.add(clipper);
+    }
+
+    private void clipLayer(ClipRect clipperLayer, ClipRect clippeeLayer) {
+        boolean isClipped = false;
+
+        // For each clip rect in the current layer (where "layer" here means a
+        // list of rects that came from the same original rectangle, and therefore never
+        // need to be tested against one another), build a new list of rects (into mScratchRects)
+        // by clipping against the current (left, top, right, bottom) rect. After all rects
+        // in the layer have been examined, swap in the new list and delete the old list.
+        for (Rect clippee : clippeeLayer.rects) {
+            if (clipperLayer.originalRect.contains(clippee)) {
+                // The clipper completely contains the clippee, so this clip
+                // produces no rectangles.
+                continue;
+            }
+            Rect intersection = mRectPool.acquire();
+            intersection.set(clippee);
+            if (intersection.intersect(clipperLayer.originalRect)) {
+
+                if (intersection.top != clippee.top) {
+                    Rect rTop = mRectPool.acquire();
+                    rTop.set(clippee.left, clippee.top, clippee.right, intersection.top);
+                    mScratchRects.add(rTop);
+                    clippee.top = intersection.top;
+                }
+
+                // Create new rectangles above and to the right
+                if (intersection.bottom != clippee.bottom) {
+                    Rect rBottom = mRectPool.acquire();
+                    rBottom.set(clippee.left, intersection.bottom, clippee.right, clippee.bottom);
+                    mScratchRects.add(rBottom);
+                    clippee.bottom = intersection.bottom;
+                }
+
+                if (intersection.left != clippee.left) {
+                    Rect rLeft = mRectPool.acquire();
+                    rLeft.set(clippee.left, clippee.top, intersection.left, clippee.bottom);
+                    mScratchRects.add(rLeft);
+                    clippee.left = intersection.left;
+                }
+
+                if (intersection.right != clippee.right) {
+                    Rect rRight = mRectPool.acquire();
+                    rRight.set(intersection.right, clippee.top, clippee.right, clippee.bottom);
+                    mScratchRects.add(rRight);
+                    clippee.right = intersection.right;
+                }
+            } else  {
+                Rect scratchClippee = mRectPool.acquire();
+                scratchClippee.set(clippee);
+                mScratchRects.add(scratchClippee);
+            }
+            mRectPool.release(intersection);
+        }
+        for (Rect r : clippeeLayer.rects) {
+            mRectPool.release(r);
+        }
+        clippeeLayer.rects.clear();
+        clippeeLayer.rects.addAll(mScratchRects);
+        mScratchRects.clear();
     }
 
     public void clear() {

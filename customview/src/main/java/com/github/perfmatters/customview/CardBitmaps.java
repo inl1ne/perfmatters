@@ -93,7 +93,7 @@ public class CardBitmaps {
         private byte[] mSourceData;
         private BackgroundProgress<Integer> mProgress = new BackgroundProgress<Integer>();
 
-        public CardLoaderTask(byte[] source, int w, int h) {
+        public CardLoaderTask(byte[] source) {
             mSourceData = source;
         }
 
@@ -158,26 +158,23 @@ public class CardBitmaps {
     }
 
     public CardBitmaps(byte[] source,
-                       int w,
-                       int h,
                        CardBitmapsListener listener,
                        boolean loadInBackground) throws IOException {
-        mRect = new Rect(0, 0, w, h);
+        mRect = new Rect(0, 0, 0, 0);
         mListener = listener;
         mOptions = new BitmapFactory.Options();
-        mOptions.outWidth = w;
-        mOptions.outHeight = h;
+
+        BitmapRegionDecoder decoder = getDecoderAndInitialRect(source, mRect);
 
         if (loadInBackground) {
             for (int i = 0; i < SUIT_COUNT; ++i) {
                 int begin = i * CARDVALUE_COUNT;
                 int end = begin + CARDVALUE_COUNT - 1;
-                CardLoaderTask task = new CardLoaderTask(source, w, h);
+                CardLoaderTask task = new CardLoaderTask(source);
                 task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, begin, end);
             }
         } else {
             Rect r = new Rect();
-            BitmapRegionDecoder decoder = getDecoderAndInitialRect(source, r);
             for (int i = 0; i < CARD_COUNT; ++i) {
                 loadCard(decoder, i, r);
             }

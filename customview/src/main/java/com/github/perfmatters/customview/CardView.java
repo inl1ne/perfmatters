@@ -21,7 +21,15 @@ import java.io.InputStream;
 public class CardView extends View {
     private CardBitmaps mCardBitmaps;
     private Paint mPaint = new Paint();
+    private Paint mPaint2 = new Paint();
     private CardClipper mClipper = new CardClipper(1000);
+    private int maxCardsToDraw = 400;
+    private boolean mDrawBitmaps = true;
+    private boolean mClip = true;
+    private boolean mDrawRects = false;
+    private Paint.FontMetrics mFontMetrics = new Paint.FontMetrics();
+    private boolean mDirty = true;
+    private ClipVisitor mVisitor;
 
     public CardView(Context context) {
         super(context);
@@ -38,10 +46,37 @@ public class CardView extends View {
         init(attrs, defStyle);
     }
 
+    public boolean isDrawBitmaps() {
+        return mDrawBitmaps;
+    }
+
+    public void setDrawBitmaps(boolean mDrawBitmaps) {
+        this.mDrawBitmaps = mDrawBitmaps;
+    }
+
+    public boolean isClip() {
+        return mClip;
+    }
+
+    public void setClip(boolean mClip) {
+        this.mClip = mClip;
+    }
+
+    public boolean isDrawRects() {
+        return mDrawRects;
+    }
+
+    public void setDrawRects(boolean mDrawRects) {
+        this.mDrawRects = mDrawRects;
+    }
+
     private void init(AttributeSet attrs, int defStyle) {
+        if (isInEditMode()) return;
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.CardView, defStyle, 0);
+
+        mVisitor = new ClipVisitor();
 
         int w = a.getDimensionPixelSize(R.styleable.CardView_cardWidth, 90);
         int h = a.getDimensionPixelSize(R.styleable.CardView_cardHeight, 160);
@@ -57,7 +92,7 @@ public class CardView extends View {
                 bytes.write(buf, 0, nRead);
             }
 
-            mCardBitmaps = new CardBitmaps(bytes.toByteArray(), w, h, new CardBitmaps.CardBitmapsListener() {
+            mCardBitmaps = new CardBitmaps(bytes.toByteArray(), new CardBitmaps.CardBitmapsListener() {
                 @Override
                 public void onLoadProgress(int progress) {
 
@@ -80,40 +115,83 @@ public class CardView extends View {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        setLayerType(LAYER_TYPE_HARDWARE, mPaint);
+        //setLayerType(LAYER_TYPE_HARDWARE, mPaint);
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setStrokeWidth(4);
+        mPaint.setColor(0xff0000ff);
+        mPaint.setTextSize(24);
+
+        mPaint2.set(mPaint);
+        mPaint2.setColor(0xffff0000);
+
     }
 
 
     @Override
     protected void onDraw(Canvas canvas) {
-        for (int i = 0; i < CardBitmaps.SUIT_COUNT; ++i) {
-            for (int j = 0; j < CardBitmaps.CARDVALUE_COUNT; ++j) {
-                int left = j * 40;
-                int top = i * 100 + j * 10;
-                int right = left + mCardBitmaps.getCardRect().width();
-                int bottom = top + mCardBitmaps.getCardRect().height();
-                mClipper.addRect(i % CardBitmaps.SUIT_COUNT + j,
+        if (isInEditMode()) return;
+        if (mDirty) {
+            mClipper.clear();
+        }
+        for (int j = 0; j < maxCardsToDraw; ++j) {
+            int row = j / CardBitmaps.CARDVALUE_COUNT;
+            int suit = row % CardBitmaps.SUIT_COUNT;
+            int card = j % CardBitmaps.CARDVALUE_COUNT;
+            int left = card * 80 + 5;
+            int top =  row * 60 + card * 10 + 5;
+            int right = left + mCardBitmaps.getCardRect().width();
+            int bottom = top + mCardBitmaps.getCardRect().height();
+            if (mDirty) {
+                mClipper.addRect(suit * CardBitmaps.CARDVALUE_COUNT + card,
                         left, top, right, bottom);
             }
         }
-        mClipper.processClippedCards(new ClipVisitor(canvas));
-        mClipper.clear();
+        mVisitor.setCanvas(canvas);
+        mClipper.processClippedCards(mVisitor);
+       // mDirty = false;
         invalidate(new Rect(100, 100, 400, 500));
+    }
+
+    public int getMaxCardsToDraw() {
+        return maxCardsToDraw;
+    }
+
+    public void setMaxCardsToDraw(int maxCardsToDraw) {
+        this.maxCardsToDraw = maxCardsToDraw;
+        mDirty = true;
     }
 
     private class ClipVisitor implements CardClipper.CardClipperVisitor {
         private Canvas mCanvas;
 
-        private ClipVisitor(Canvas canvas) {
-            this.mCanvas = canvas;
+        public Canvas getCanvas() {
+            return mCanvas;
+        }
+
+        public void setCanvas(Canvas canvas) {
+            mCanvas = canvas;
         }
 
         @Override
         public void visit(int originalCardId, Rect originalRect, Rect clippedRect) {
             Bitmap bmp = mCardBitmaps.getCardBitmap(originalCardId);
             if (bmp != null) {
-                mCanvas.clipRect(clippedRect, Region.Op.REPLACE);
-                mCanvas.drawBitmap(bmp, originalRect.left, originalRect.bottom, mPaint);
+                Paint rectPaint = clippedRect.width() > clippedRect.height() ? mPaint : mPaint2;
+                if (mClip) {
+                    mCanvas.clipRect(clippedRect, Region.Op.REPLACE);
+                }
+                if (mDrawBitmaps) {
+                    mCanvas.drawBitmap(bmp, originalRect.left, originalRect.top, mPaint);
+                }
+                if (mDrawRects) {
+                    mPaint.getFontMetrics(mFontMetrics);
+                    mCanvas.drawRect(clippedRect, rectPaint);
+                    mCanvas.drawText(
+                            String.format("%d", originalCardId),
+                            clippedRect.left,
+                            clippedRect.top - mFontMetrics.ascent,
+                            rectPaint);
+                }
             }
         }
     }
