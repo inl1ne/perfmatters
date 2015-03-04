@@ -74,7 +74,7 @@ public class CardBitmaps {
         if (!mBitmaps.compareAndSet(i, null, bmp)) {
             throw new IllegalThreadStateException(
                     String.format(
-                            "Bitmap loader worker threads collided on item %d", i)
+                            "Bitmap loader worker threads collided on tag %d", i)
             );
         }
         mLoaded.incrementAndGet();

@@ -13,6 +13,7 @@ import android.view.View;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 
 /**
@@ -22,7 +23,7 @@ public class CardView extends View {
     private CardBitmaps mCardBitmaps;
     private Paint mPaint = new Paint();
     private Paint mPaint2 = new Paint();
-    private CardClipper mClipper = new CardClipper(1000);
+    private RectClipper mClipper = new RectClipper(new Rect(0,0,4000,4000),16, 10000);
     private int maxCardsToDraw = 400;
     private boolean mDrawBitmaps = true;
     private boolean mClip = true;
@@ -52,6 +53,7 @@ public class CardView extends View {
 
     public void setDrawBitmaps(boolean mDrawBitmaps) {
         this.mDrawBitmaps = mDrawBitmaps;
+        invalidate();
     }
 
     public boolean isClip() {
@@ -60,6 +62,7 @@ public class CardView extends View {
 
     public void setClip(boolean mClip) {
         this.mClip = mClip;
+        invalidate();
     }
 
     public boolean isDrawRects() {
@@ -68,6 +71,7 @@ public class CardView extends View {
 
     public void setDrawRects(boolean mDrawRects) {
         this.mDrawRects = mDrawRects;
+        invalidate();
     }
 
     private void init(AttributeSet attrs, int defStyle) {
@@ -126,30 +130,40 @@ public class CardView extends View {
 
     }
 
+    private class Card {
+        Rect screenRect;
+        int id;
+
+        private Card(Rect screenRect, int id) {
+            this.screenRect = screenRect;
+            this.id = id;
+        }
+
+        public Rect getScreenRect() {
+            return screenRect;
+        }
+
+        public void setScreenRect(Rect screenRect) {
+            this.screenRect = screenRect;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+    }
+    ArrayList<Card> mCards = new ArrayList<>();
 
     @Override
     protected void onDraw(Canvas canvas) {
         if (isInEditMode()) return;
-        if (mDirty) {
-            mClipper.clear();
-        }
-        for (int j = 0; j < maxCardsToDraw; ++j) {
-            int row = j / CardBitmaps.CARDVALUE_COUNT;
-            int suit = row % CardBitmaps.SUIT_COUNT;
-            int card = j % CardBitmaps.CARDVALUE_COUNT;
-            int left = card * 80 + 5;
-            int top =  row * 60 + card * 10 + 5;
-            int right = left + mCardBitmaps.getCardRect().width();
-            int bottom = top + mCardBitmaps.getCardRect().height();
-            if (mDirty) {
-                mClipper.addRect(suit * CardBitmaps.CARDVALUE_COUNT + card,
-                        left, top, right, bottom);
-            }
-        }
         mVisitor.setCanvas(canvas);
-        mClipper.processClippedCards(mVisitor);
+        mClipper.visitCliprects(mVisitor);
        // mDirty = false;
-        invalidate(new Rect(100, 100, 400, 500));
+       // invalidate(new Rect(100, 100, 400, 500));
     }
 
     public int getMaxCardsToDraw() {
@@ -158,10 +172,31 @@ public class CardView extends View {
 
     public void setMaxCardsToDraw(int maxCardsToDraw) {
         this.maxCardsToDraw = maxCardsToDraw;
+
         mDirty = true;
+        mCards.clear();
+        mClipper.clear();
+        for (int j = 0; j < maxCardsToDraw; ++j) {
+            int row = j / CardBitmaps.CARDVALUE_COUNT;
+            int suit = row % CardBitmaps.SUIT_COUNT;
+            int id = j % CardBitmaps.CARDVALUE_COUNT;
+            int left = id * 80 + 5;
+            int top =  row * 60 + id * 10 + 5;
+            int right = left + mCardBitmaps.getCardRect().width();
+            int bottom = top + mCardBitmaps.getCardRect().height();
+            if (mDirty) {
+                Card card = new Card(new Rect(left,top,right,bottom), id);
+                mCards.add(card);
+                mClipper.addRectToBottom(card.getScreenRect(), card);
+//              mClipper.addRect(suit * CardBitmaps.CARDVALUE_COUNT + card,
+//                        left, top, right, bottom);
+            }
+        }
+
+        invalidate();
     }
 
-    private class ClipVisitor implements CardClipper.CardClipperVisitor {
+    private class ClipVisitor implements CardClipper.CardClipperVisitor, RectClipper.ClipRectVisitor<Card> {
         private Canvas mCanvas;
 
         public Canvas getCanvas() {
@@ -193,6 +228,11 @@ public class CardView extends View {
                             rectPaint);
                 }
             }
+        }
+
+        @Override
+        public void visit(Rect clippedBounds, Card item) {
+            visit(item.id, item.screenRect, clippedBounds);
         }
     }
 }
