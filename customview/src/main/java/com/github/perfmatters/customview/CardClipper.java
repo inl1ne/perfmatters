@@ -90,44 +90,44 @@ public class CardClipper {
                 // produces no rectangles.
                 continue;
             }
-            Rect intersection = mRectPool.acquire();
-            intersection.set(clippee);
-            if (intersection.intersect(clipperLayer.originalRect)) {
+            Rect scratchRect = mRectPool.acquire();
+            scratchRect.set(clippee);
+            if (scratchRect.intersect(clipperLayer.originalRect)) {
 
-                if (intersection.top != clippee.top) {
+                if (scratchRect.top != clippee.top) {
                     Rect rTop = mRectPool.acquire();
-                    rTop.set(clippee.left, clippee.top, clippee.right, intersection.top);
+                    rTop.set(clippee.left, clippee.top, clippee.right, scratchRect.top);
                     mScratchRects.add(rTop);
-                    clippee.top = intersection.top;
+                    clippee.top = scratchRect.top;
                 }
 
                 // Create new rectangles above and to the right
-                if (intersection.bottom != clippee.bottom) {
+                if (scratchRect.bottom != clippee.bottom) {
                     Rect rBottom = mRectPool.acquire();
-                    rBottom.set(clippee.left, intersection.bottom, clippee.right, clippee.bottom);
+                    rBottom.set(clippee.left, scratchRect.bottom, clippee.right, clippee.bottom);
                     mScratchRects.add(rBottom);
-                    clippee.bottom = intersection.bottom;
+                    clippee.bottom = scratchRect.bottom;
                 }
 
-                if (intersection.left != clippee.left) {
+                if (scratchRect.left != clippee.left) {
                     Rect rLeft = mRectPool.acquire();
-                    rLeft.set(clippee.left, clippee.top, intersection.left, clippee.bottom);
+                    rLeft.set(clippee.left, clippee.top, scratchRect.left, clippee.bottom);
                     mScratchRects.add(rLeft);
-                    clippee.left = intersection.left;
+                    clippee.left = scratchRect.left;
                 }
 
-                if (intersection.right != clippee.right) {
+                if (scratchRect.right != clippee.right) {
                     Rect rRight = mRectPool.acquire();
-                    rRight.set(intersection.right, clippee.top, clippee.right, clippee.bottom);
+                    rRight.set(scratchRect.right, clippee.top, clippee.right, clippee.bottom);
                     mScratchRects.add(rRight);
-                    clippee.right = intersection.right;
+                    clippee.right = scratchRect.right;
                 }
             } else  {
                 Rect scratchClippee = mRectPool.acquire();
                 scratchClippee.set(clippee);
                 mScratchRects.add(scratchClippee);
             }
-            mRectPool.release(intersection);
+            mRectPool.release(scratchRect);
         }
         for (Rect r : clippeeLayer.rects) {
             mRectPool.release(r);
