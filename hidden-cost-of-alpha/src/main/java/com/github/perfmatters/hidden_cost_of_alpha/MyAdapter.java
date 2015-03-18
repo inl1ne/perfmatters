@@ -2,6 +2,7 @@ package com.github.perfmatters.hidden_cost_of_alpha;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.StrictMode;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -104,6 +105,12 @@ public class MyAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        StrictMode.noteSlowCall("foo");
+        try {
+            Thread.sleep(60);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Item item = items[position];
         View result;
 

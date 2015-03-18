@@ -2,6 +2,7 @@ package com.github.perfmatters.hidden_cost_of_alpha;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
@@ -15,6 +16,12 @@ public class Main extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectCustomSlowCalls()
+                .penaltyFlashScreen()
+                .build());
+
         setContentView(R.layout.activity_main);
         final AlphaListView list = (AlphaListView) findViewById(R.id.list);
         list.setAdapter(new MyAdapter(this));

@@ -25,6 +25,7 @@ public class CardClipper {
     private Pools.Pool<ClipRect> mClipRectPool;
     private ArrayList<ClipRect> mCliplist;
 
+
     private ArrayList<Rect> mScratchRects = new ArrayList<>();
 
 

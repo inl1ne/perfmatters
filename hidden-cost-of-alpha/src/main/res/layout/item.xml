@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.android.perf.perfmatters.ItemView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.github.perfmatters.hidden_cost_of_alpha.ItemView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingTop="4dp"
@@ -41,4 +41,4 @@
         android:text="Perf Like a Pirate"/>
 
 </RelativeLayout>
-</com.example.android.perf.perfmatters.ItemView>
+</com.github.perfmatters.hidden_cost_of_alpha.ItemView>

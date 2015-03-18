@@ -31,6 +31,11 @@ public class CardView extends View {
     private boolean mDirty = true;
     private ClipVisitor mVisitor;
 
+    // scratchpad variables that are defined at instance scope to avoid
+    // unnecessary allocations
+    private Rect mScratchRect = new Rect();
+    private Rect mOriginalClipBounds;
+
     public CardView(Context context) {
         super(context);
         init(null, 0);
@@ -133,12 +138,16 @@ public class CardView extends View {
         if (mDirty) {
             mClipper.clear();
         }
+        mOriginalClipBounds = canvas.getClipBounds();
+
+        Paint p = new Paint();
+        canvas.drawText("foo", p);
         for (int j = 0; j < maxCardsToDraw; ++j) {
             int row = j / CardBitmaps.CARDVALUE_COUNT;
             int suit = row % CardBitmaps.SUIT_COUNT;
             int card = j % CardBitmaps.CARDVALUE_COUNT;
-            int left = card * 80 + 5;
-            int top =  row * 60 + card * 10 + 5;
+            int left = card * 80 - 5;
+            int top =  row * 60 + card * 10 - 5;
             int right = left + mCardBitmaps.getCardRect().width();
             int bottom = top + mCardBitmaps.getCardRect().height();
             if (mDirty) {
@@ -148,8 +157,8 @@ public class CardView extends View {
         }
         mVisitor.setCanvas(canvas);
         mClipper.processClippedCards(mVisitor);
-       // mDirty = false;
-        invalidate(new Rect(100, 100, 400, 500));
+        mDirty = false;
+        invalidate();
     }
 
     public int getMaxCardsToDraw() {
@@ -175,21 +184,24 @@ public class CardView extends View {
         @Override
         public void visit(int originalCardId, Rect originalRect, Rect clippedRect) {
             Bitmap bmp = mCardBitmaps.getCardBitmap(originalCardId);
-            if (bmp != null) {
+            mScratchRect.set(clippedRect);
+            mScratchRect.intersect(mOriginalClipBounds);
+            if (bmp != null && !mScratchRect.isEmpty()) {
                 Paint rectPaint = clippedRect.width() > clippedRect.height() ? mPaint : mPaint2;
+
                 if (mClip) {
-                    mCanvas.clipRect(clippedRect, Region.Op.REPLACE);
+                    mCanvas.clipRect(mScratchRect, Region.Op.REPLACE);
                 }
                 if (mDrawBitmaps) {
                     mCanvas.drawBitmap(bmp, originalRect.left, originalRect.top, mPaint);
                 }
                 if (mDrawRects) {
                     mPaint.getFontMetrics(mFontMetrics);
-                    mCanvas.drawRect(clippedRect, rectPaint);
+                    mCanvas.drawRect(mScratchRect, rectPaint);
                     mCanvas.drawText(
                             String.format("%d", originalCardId),
-                            clippedRect.left,
-                            clippedRect.top - mFontMetrics.ascent,
+                            mScratchRect.left,
+                            mScratchRect.top - mFontMetrics.ascent,
                             rectPaint);
                 }
             }

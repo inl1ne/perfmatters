@@ -24,6 +24,7 @@ public class ItemView extends FrameLayout {
         super(context, attrs, defStyleAttr);
     }
 
+
     public ItemView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
